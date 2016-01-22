@@ -3,4 +3,4 @@ using ```json-schema-validator```. It is some kind of a port of [om_henners/GeoJ
 
 Minor changes were made to the geojson schema itself.
 
-Many thanks to [@fge](https://github.com/fge) and [@om_henners](https://github.com/om_henners)
+Many thanks to [@fge](https://github.com/fge) and [@om-henners](https://github.com/om-henners)
