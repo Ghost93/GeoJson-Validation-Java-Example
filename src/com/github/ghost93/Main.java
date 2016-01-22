@@ -8,7 +8,10 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class Main {
     public static ObjectMapper objectMapper = new ObjectMapper();
@@ -16,7 +19,7 @@ public class Main {
     public static void main(String[] args) throws IOException, ProcessingException {
         JsonSchema geoJsonSchema = getLocalGeoJsonSchema();
 
-        JsonNode homeGeoJson = objectMapper.readTree("{\n\t\"type\": \"Polygon\",\n\t\"coordinates\": [[[35.250506,\n\t31.820620],\n\t[35.250516,\n\t31.820696],\n\t[35.250573,\n\t31.820733],\n\t[35.250599,\n\t31.820692],\n\t[35.250601,\n\t31.820623],\n\t[35.250510,\n\t31.820619],\n\t[35.250506,\n\t31.820620]]]\n}");
+        JsonNode homeGeoJson = objectMapper.readTree("{\"type\": \"Polygon\",\"coordinates\": [[[35.250506,31.820620],[35.250516,31.820696],[35.250573,31.820733],[35.250599,31.820692],[35.250601,31.820623],[35.250510,31.820619],[35.250506,31.820620]]]}");
 
         System.out.println("HOME");
         final ProcessingReport validate = geoJsonSchema.validate(homeGeoJson);
@@ -27,14 +30,14 @@ public class Main {
 
         System.out.println("GEOMETRY COLLECTION");
 
-        final JsonNode geometryCollection = objectMapper.readTree("{ \"type\": \"GeometryCollection\",\n    \"geometries\": [\n      { \"type\": \"Point\",\n        \"coordinates\": [100.0, 0.0]\n        },\n      { \"type\": \"LineString\",\n        \"coordinates\": [ [101.0, 0.0], [102.0, 1.0] ]\n        }\n    ]\n  }");
+        final JsonNode geometryCollection = objectMapper.readTree("{ \"type\": \"GeometryCollection\",\"geometries\": [{ \"type\": \"Point\",  \"coordinates\": [100.0, 0.0]  },{ \"type\": \"LineString\",  \"coordinates\": [ [101.0, 0.0], [102.0, 1.0] ]  }]  }");
 
         final ProcessingReport collectionValidationReport = geoJsonSchema.validate(geometryCollection);
         System.out.println(collectionValidationReport);
 
         System.out.println("WIKIPEDIA");
 
-        final ProcessingReport wikipediaValidation = geoJsonSchema.validate(objectMapper.readTree("{ \"type\": \"FeatureCollection\",\n    \"features\": [\n      { \"type\": \"Feature\",\n        \"geometry\": {\"type\": \"Point\", \"coordinates\": [102.0, 0.5]},\n        \"properties\": {\"prop0\": \"value0\"}\n        },\n      { \"type\": \"Feature\",\n        \"geometry\": {\n          \"type\": \"LineString\",\n          \"coordinates\": [\n            [102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]\n            ]\n          },\n        \"properties\": {\n          \"prop0\": \"value0\",\n          \"prop1\": 0.0\n          }\n        },\n      { \"type\": \"Feature\",\n         \"geometry\": {\n           \"type\": \"Polygon\",\n           \"coordinates\": [\n             [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],\n               [100.0, 1.0], [100.0, 0.0] ]\n             ]\n         },\n         \"properties\": {\n           \"prop0\": \"value0\",\n           \"prop1\": {\"this\": \"that\"}\n           }\n         }\n       ]\n     }"));
+        final ProcessingReport wikipediaValidation = geoJsonSchema.validate(objectMapper.readTree("{ \"type\": \"FeatureCollection\",\"features\": [{ \"type\": \"Feature\",  \"geometry\": {\"type\": \"Point\", \"coordinates\": [102.0, 0.5]},  \"properties\": {\"prop0\": \"value0\"}  },{ \"type\": \"Feature\",  \"geometry\": {\"type\": \"LineString\",\"coordinates\": [[102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]]},  \"properties\": {\"prop0\": \"value0\",\"prop1\": 0.0}  },{ \"type\": \"Feature\",\"geometry\": {\"type\": \"Polygon\",\"coordinates\": [ [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],[100.0, 1.0], [100.0, 0.0] ] ]},\"properties\": {\"prop0\": \"value0\",\"prop1\": {\"this\": \"that\"}}} ]}"));
         System.out.println(wikipediaValidation);
     }
 
@@ -51,13 +54,17 @@ public class Main {
         final JsonNode crsSchemaNode = objectMapper.readTree(crsSchema);
         final JsonNode bboxSchemaNode = objectMapper.readTree(bboxSchema);
 
-        LoadingConfiguration loadingCfg = LoadingConfiguration.newBuilder().preloadSchema(geoJsonSchemaNode)
+        LoadingConfiguration loadingCfg = LoadingConfiguration.newBuilder()
+                .preloadSchema(geoJsonSchemaNode)
                 .preloadSchema(geometrySchemaNode)
                 .preloadSchema(crsSchemaNode)
                 .preloadSchema(bboxSchemaNode)
-                .setEnableCache(true).freeze();
+                .setEnableCache(true)
+                .freeze();
 
-        final JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.newBuilder().setLoadingConfiguration(loadingCfg).freeze();
+        final JsonSchemaFactory jsonSchemaFactory = JsonSchemaFactory.newBuilder()
+                .setLoadingConfiguration(loadingCfg)
+                .freeze();
         final JsonSchema res = jsonSchemaFactory.getJsonSchema(geoJsonSchemaNode);
         return res;
     }
